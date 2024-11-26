@@ -32,24 +32,6 @@ func (*FILE) WriteString(path string, s string) error {
 	return nil
 }
 
-func (*FILE) DirSizeMB(path string) error {
-	var dirSize int64 = 0
-
-	readSize := func(path string, file os.FileInfo, err error) error {
-        if !file.IsDir() {
-            dirSize += file.Size()
-        }
-
-        return nil
-    }
-
-    filepath.Walk(path, readSize)    
-
-    sizeMB := float64(dirSize) / 1024.0 / 1024.0
-
-    return sizeMB
-}
-
 func (*FILE) DirSizeMB(path string) float64 {
     var dirSize int64 = 0
 
