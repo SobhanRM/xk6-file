@@ -1,4 +1,4 @@
-module github.com/sobhanrm/xk6-file
+module github.com/avitalique/xk6-file
 
 go 1.22
 
