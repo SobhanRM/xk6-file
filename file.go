@@ -32,22 +32,47 @@ func (*FILE) WriteString(path string, s string) error {
 	return nil
 }
 
-func (*FILE) DirSizeMB(path string) float64 {
-    var dirSize int64 = 0
+func (*FILE) DirSizeMB(path string) (int64, error) {
+	var size int64
+    var mu sync.Mutex
 
-    readSize := func(path string, file os.FileInfo, err error) error {
-        if !file.IsDir() {
-            dirSize += file.Size()
+    // Function to calculate size for a given path
+    var calculateSize func(string) error
+    calculateSize = func(p string) error {
+        fileInfo, err := os.Lstat(p)
+        if err != nil {
+            return err
         }
 
+        // Skip symbolic links to avoid counting them multiple times
+        if fileInfo.Mode()&os.ModeSymlink != 0 {
+            return nil
+        }
+
+        if fileInfo.IsDir() {
+            entries, err := os.ReadDir(p)
+            if err != nil {
+                return err
+            }
+            for _, entry := range entries {
+                if err := calculateSize(filepath.Join(p, entry.Name())); err != nil {
+                    return err
+                }
+            }
+        } else {
+            mu.Lock()
+            size += fileInfo.Size()
+            mu.Unlock()
+        }
         return nil
     }
 
-    filepath.Walk(path, readSize)    
+    // Start calculation from the root path
+    if err := calculateSize(path); err != nil {
+        return 0, err
+    }
 
-    sizeMB := float64(dirSize) / 1024.0 / 1024.0
-
-    return sizeMB
+    return size, nil
 }
 
 // AppendString appends string to file
