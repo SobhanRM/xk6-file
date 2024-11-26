@@ -50,7 +50,7 @@ func (*FILE) DirSizeMB(path string) error {
     return sizeMB
 }
 
-func DirSizeMB(path string) float64 {
+func (*FILE) DirSizeMB(path string) float64 {
     var dirSize int64 = 0
 
     readSize := func(path string, file os.FileInfo, err error) error {
